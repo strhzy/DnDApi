@@ -22,9 +22,16 @@ namespace DnDAPI.Controllers
 
         // GET: api/User
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers([FromQuery] string? query)
         {
-            return await _context.Users.ToListAsync();
+            var users = _context.Users.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                users = users.Where(u => u.Username.Contains(query));
+            }
+
+            return await users.ToListAsync();
         }
 
         // GET: api/User/5
