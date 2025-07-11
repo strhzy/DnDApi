@@ -5,6 +5,7 @@ namespace DnDAPI.Models
     public class DnDContext : DbContext
     {
         public DbSet<Campaign> Campaigns { get; set; }
+        public DbSet<User> Users { get; set; }
         public DbSet<StoryElement> StoryElements { get; set; }
         public DbSet<Client> Clients { get; set; }
         public DbSet<Attack> Attacks { get; set; }
@@ -20,6 +21,17 @@ namespace DnDAPI.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Конфигурация User
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Characters)
+                .WithOne()
+                .HasForeignKey(c => c.UserId);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Campaigns)
+                .WithOne()
+                .HasForeignKey(c => c.MasterId);
+            
             modelBuilder.Entity<Campaign>()
                 .HasMany(c => c.PlotItems)
                 .WithOne(s => s.Campaign)

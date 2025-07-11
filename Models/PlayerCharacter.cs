@@ -27,6 +27,12 @@ public class PlayerCharacter
 
         [StringLength(50)]
         public string Alignment { get; set; } = string.Empty;
+        
+        [ForeignKey("User")]
+        public Guid UserId;
+
+        [JsonIgnore]
+        public User? User;
 
         public int ExperiencePoints { get; set; }
 
