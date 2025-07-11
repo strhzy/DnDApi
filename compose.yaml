@@ -1,0 +1,7 @@
+﻿services:
+  dndapi:
+    image: dndapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+
