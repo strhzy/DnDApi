@@ -27,7 +27,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
+app.Urls.Add("http://0.0.0.0:8080");
 app.UseOpenApi();
 app.UseSwaggerUi();
 app.UseHttpsRedirection();
