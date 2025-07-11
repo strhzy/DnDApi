@@ -4,4 +4,6 @@
     build:
       context: .
       dockerfile: Dockerfile
-
+    ports:
+      - "5000:8080"
+      - "5001:8081"
