@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DnDAPI.Models;
+using Microsoft.IdentityModel.Tokens;
 
 namespace DnDAPI.Controllers
 {
@@ -22,9 +23,15 @@ namespace DnDAPI.Controllers
 
         // GET: api/PlayerCharacter
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlayerCharacter>>> GetPlayerCharacters()
+        public async Task<ActionResult<IEnumerable<PlayerCharacter>>> GetPlayerCharacters([FromQuery] string? query)
         {
-            return await _context.PlayerCharacters.ToListAsync();
+            var characters = _context.PlayerCharacters.AsQueryable();
+            if (!query.IsNullOrEmpty())
+            {
+                characters = characters.Where(p => p.UserId.ToString().Contains(query));
+            }
+
+            return await characters.ToListAsync();
         }
 
         // GET: api/PlayerCharacter/5
