@@ -31,14 +31,16 @@ namespace DnDAPI.Controllers
                 characters = characters.Where(p => p.UserId.ToString().Contains(query));
             }
 
-            return await characters.ToListAsync();
+            return await characters.Include(pc => pc.Attacks).ToListAsync();
         }
 
         // GET: api/PlayerCharacter/5
         [HttpGet("{id}")]
         public async Task<ActionResult<PlayerCharacter>> GetPlayerCharacter(Guid id)
         {
-            var playerCharacter = await _context.PlayerCharacters.FindAsync(id);
+            var playerCharacter = await _context.PlayerCharacters
+                .Include(pc => pc.Attacks)
+                .FirstOrDefaultAsync(pc => pc.Id == id);
 
             if (playerCharacter == null)
             {
