@@ -83,16 +83,10 @@ public class Enemy
 
         public double? ChallengeRatingValue { get; set; }
 
-        public List<Attack> Actions { get; set; } = new();
-
-        public List<Attack> BonusActions { get; set; } = new();
-
-        public List<Attack> Reactions { get; set; } = new();
+        public List<Attack> Attacks { get; set; } = new();
 
         [StringLength(1000)]
         public string? LegendaryDescription { get; set; }
-
-        public List<Attack> LegendaryActions { get; set; } = new();
 
         public List<SpecialAbility> SpecialAbilities { get; set; } = new();
 

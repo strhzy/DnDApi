@@ -45,27 +45,12 @@ namespace DnDAPI.Models
             modelBuilder.Entity<PlayerCharacter>()
                 .HasMany(p => p.Attacks)
                 .WithOne()
-                .HasForeignKey(a => a.Id);
+                .HasForeignKey(a => a.PlayerCharacterId);
 
             modelBuilder.Entity<Enemy>()
-                .HasMany(e => e.Actions)
+                .HasMany(e => e.Attacks)
                 .WithOne()
-                .HasForeignKey(a => a.Id);
-
-            modelBuilder.Entity<Enemy>()
-                .HasMany(e => e.BonusActions)
-                .WithOne()
-                .HasForeignKey(a => a.Id);
-
-            modelBuilder.Entity<Enemy>()
-                .HasMany(e => e.Reactions)
-                .WithOne()
-                .HasForeignKey(a => a.Id);
-
-            modelBuilder.Entity<Enemy>()
-                .HasMany(e => e.LegendaryActions)
-                .WithOne()
-                .HasForeignKey(a => a.Id);
+                .HasForeignKey(a => a.EnemyId);
 
             modelBuilder.Entity<Enemy>()
                 .HasMany(e => e.SpecialAbilities)

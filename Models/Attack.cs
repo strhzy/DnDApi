@@ -14,9 +14,11 @@ public class Attack
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
     
-    [Required]
     [ForeignKey("PlayerCharacter")]
-    public Guid PlayerCharacterId { get; set; }
+    public Guid? PlayerCharacterId { get; set; }
+    
+    [ForeignKey("Enemy")]
+    public Guid? EnemyId { get; set; }
 
     [StringLength(1000)]
     [JsonPropertyName("desc")]
