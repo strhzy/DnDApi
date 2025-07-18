@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace DnDAPI.Models;
@@ -12,6 +13,10 @@ public class Attack
     [StringLength(100)]
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
+    
+    [Required]
+    [ForeignKey("PlayerCharacter")]
+    public Guid PlayerCharacterId { get; set; }
 
     [StringLength(1000)]
     [JsonPropertyName("desc")]

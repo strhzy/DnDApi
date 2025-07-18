@@ -22,9 +22,16 @@ namespace DnDAPI.Controllers
 
         // GET: api/Attack
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Attack>>> GetAttacks()
+        public async Task<ActionResult<IEnumerable<Attack>>> GetAttacks([FromQuery] string? query)
         {
-            return await _context.Attacks.ToListAsync();
+            var attacks = _context.Attacks.AsQueryable();
+            
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                attacks = attacks.Where(a => a.PlayerCharacterId == Guid.Parse(query));
+            }
+            
+            return await attacks.ToListAsync();
         }
 
         // GET: api/Attack/5
