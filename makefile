@@ -1,6 +1,7 @@
-﻿.PHONY update:
+﻿.PHONY: update
+
 update:
-    docker compose down -v
-    docker rmi dndapi:latest
-    git pull
-    docker compose up -d
+        docker compose down -v
+        docker rmi dndapi:latest
+        git pull
+        docker compose up -d
