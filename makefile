@@ -1,4 +1,5 @@
 ﻿.PHONY update:
+update:
     docker compose down -v
     docker rmi dndapi:latest
     git pull
