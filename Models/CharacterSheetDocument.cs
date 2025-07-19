@@ -26,8 +26,9 @@ public class CharacterSheetDocument : IDocument
 
             page.Content().Stack(stack =>
             {
+                var templatePath = Path.Combine(AppContext.BaseDirectory, "Assets", "CharacterSheetTemplate.png");
                 // Шаблонный фон
-                stack.Item().Image("Assets/CharacterSheetTemplate.png", ImageScaling.FitArea);
+                stack.Item().Image(templatePath, ImageScaling.FitArea);
 
                 // Текст поверх шаблона
                 stack.Item().Element(ComposeOverlayContent);
