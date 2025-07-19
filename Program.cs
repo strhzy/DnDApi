@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using DnDAPI.Models;
 using DnDAPI.Controllers;
+using QuestPDF.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Add services to the container.
 builder.Services.AddControllers();
