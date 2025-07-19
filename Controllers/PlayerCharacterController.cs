@@ -49,25 +49,6 @@ namespace DnDAPI.Controllers
 
             return playerCharacter;
         }
-        
-        // GET: api/PlayerCharacter/{id}/pdf
-        [HttpGet("{id}/pdf")]
-        public async Task<IActionResult> GetCharacterPdf(Guid id)
-        {
-            var character = await _context.PlayerCharacters
-                .Include(pc => pc.Attacks)
-                .FirstOrDefaultAsync(pc => pc.Id == id);
-
-            if (character == null)
-            {
-                return NotFound();
-            }
-
-            var pdf = new CharacterSheetDocument(character, character.Attacks).GeneratePdf();
-            var fileName = $"{character.Name}_CharacterSheet.pdf";
-    
-            return File(pdf, "application/pdf", fileName);
-        }
 
         // PUT: api/PlayerCharacter/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
