@@ -73,38 +73,29 @@ namespace DnDAPI.Controllers
                 var engine = new RazorLightEngineBuilder()
                     .UseFileSystemProject(Directory.GetCurrentDirectory())
                     .Build();
-    
+        
                 var html = await engine.CompileRenderAsync(templatePath, character);
 
-                // 2. Конвертация HTML в PDF с помощью DinkToPdf
-                var converter = new BasicConverter(new PdfTools());
-        
-                var doc = new HtmlToPdfDocument()
+                // 2. Конвертация HTML в PDF через внешний API
+                string apiKey = "2df21dfbf758aeb5b474b71845591ecb"; // Замените на реальный ключ
+                using (var client = new HttpClient())
                 {
-                    GlobalSettings = {
-                        ColorMode = ColorMode.Color,
-                        Orientation = Orientation.Portrait,
-                        PaperSize = PaperKind.A4,
-                        Margins = new MarginSettings() { 
-                            Top = 10, 
-                            Right = 10, 
-                            Bottom = 10, 
-                            Left = 10 
-                        }
-                    },
-                    Objects = {
-                        new ObjectSettings() {
-                            HtmlContent = html,
-                            WebSettings = { DefaultEncoding = "utf-8" },
-                            HeaderSettings = { FontSize = 9, Right = "Page [page] of [toPage]", Line = true },
-                        }
+                    var formData = new MultipartFormDataContent();
+                    formData.Add(new StringContent(apiKey), "apikey");
+                    formData.Add(new StringContent(html), "value");
+
+                    var response = await client.PostAsync("http://api.pdf4b.ru/pdf", formData);
+            
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return StatusCode((int)response.StatusCode, "PDF generation service error");
                     }
-                };
 
-                var pdfBytes = converter.Convert(doc);
+                    var pdfBytes = await response.Content.ReadAsByteArrayAsync();
 
-                // 3. Возврат PDF как файла
-                return File(pdfBytes, "application/pdf", $"{character.Name}.pdf");
+                    // 3. Возврат PDF как файла
+                    return File(pdfBytes, "application/pdf", $"{character.Name}.pdf");
+                }
             }
             catch (Exception ex)
             {
