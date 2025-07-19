@@ -20,4 +20,7 @@ RUN dotnet publish "./DnDAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+# Явное копирование папки Templates
+COPY --from=build /src/Templates ./Templates/
+RUN ls -la /app/Templates/
 ENTRYPOINT ["dotnet", "DnDAPI.dll"]
