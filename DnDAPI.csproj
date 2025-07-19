@@ -34,9 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Templates\*.cshtml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="Templates\*.cshtml" />
   </ItemGroup>
 
 </Project>
