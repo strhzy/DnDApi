@@ -73,35 +73,35 @@ namespace DnDAPI.Controllers
                 var engine = new RazorLightEngineBuilder()
                     .UseFileSystemProject(Directory.GetCurrentDirectory())
                     .Build();
-        
+    
                 var html = await engine.CompileRenderAsync(templatePath, character);
 
-                // 2. Конвертация HTML в PDF
-                var browserFetcher = new BrowserFetcher();
-                await browserFetcher.DownloadAsync();
+                // 2. Конвертация HTML в PDF с помощью DinkToPdf
+                var converter = new BasicConverter(new PdfTools());
         
-                var launchOptions = new LaunchOptions
+                var doc = new HtmlToPdfDocument()
                 {
-                    Headless = true,
-                    Args = new[] { "--no-sandbox" }
+                    GlobalSettings = {
+                        ColorMode = ColorMode.Color,
+                        Orientation = Orientation.Portrait,
+                        PaperSize = PaperKind.A4,
+                        Margins = new MarginSettings() { 
+                            Top = 10, 
+                            Right = 10, 
+                            Bottom = 10, 
+                            Left = 10 
+                        }
+                    },
+                    Objects = {
+                        new ObjectSettings() {
+                            HtmlContent = html,
+                            WebSettings = { DefaultEncoding = "utf-8" },
+                            HeaderSettings = { FontSize = 9, Right = "Page [page] of [toPage]", Line = true },
+                        }
+                    }
                 };
 
-                await using var browser = await Puppeteer.LaunchAsync(launchOptions);
-                await using var page = await browser.NewPageAsync();
-        
-                await page.SetContentAsync(html);
-                var pdfBytes = await page.PdfDataAsync(new PdfOptions
-                {
-                    Format = PaperFormat.A4,
-                    PrintBackground = true,
-                    MarginOptions = new MarginOptions
-                    {
-                        Top = "10mm",
-                        Right = "10mm",
-                        Bottom = "10mm",
-                        Left = "10mm"
-                    }
-                });
+                var pdfBytes = converter.Convert(doc);
 
                 // 3. Возврат PDF как файла
                 return File(pdfBytes, "application/pdf", $"{character.Name}.pdf");
