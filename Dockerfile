@@ -22,5 +22,14 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 # Явное копирование папки Templates
 COPY --from=build /src/Templates ./Templates/
-RUN ls -la /app/Templates/
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libgdiplus \
+    libc6-dev \
+    libx11-dev \
+    libxext-dev \
+    libxrender-dev \
+    libfontconfig1-dev \
+    libfreetype6-dev \
+    && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["dotnet", "DnDAPI.dll"]
