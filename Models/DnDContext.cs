@@ -45,17 +45,20 @@ namespace DnDAPI.Models
             modelBuilder.Entity<PlayerCharacter>()
                 .HasMany(p => p.Attacks)
                 .WithOne()
-                .HasForeignKey(a => a.PlayerCharacterId);
+                .HasForeignKey(a => a.PlayerCharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Enemy>()
                 .HasMany(e => e.Attacks)
                 .WithOne()
-                .HasForeignKey(a => a.EnemyId);
+                .HasForeignKey(a => a.EnemyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Enemy>()
                 .HasMany(e => e.SpecialAbilities)
                 .WithOne(s => s.Enemy)
-                .HasForeignKey(s => s.EnemyId);
+                .HasForeignKey(s => s.EnemyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Конвертация Dictionary для PostgreSQL
             modelBuilder.Entity<Enemy>()
