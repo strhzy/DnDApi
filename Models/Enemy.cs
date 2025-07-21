@@ -32,12 +32,12 @@ public class Enemy
         [StringLength(50)]
         public string? Alignment { get; set; }
 
-        public int? ArmorClass { get; set; }
+        public int ArmorClass { get; set; }
 
         [StringLength(100)]
         public string? ArmorDescription { get; set; }
 
-        public int? CurrentHitPoints { get; set; }
+        public int CurrentHitPoints { get; set; }
 
         [StringLength(50)]
         public string? HitDice { get; set; }

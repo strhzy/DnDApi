@@ -24,6 +24,7 @@ public abstract class CombatParticipant
     public bool IsActive { get; set; }
 
     public ParticipantType Type { get; set; }
+    public Guid SourceId { get; set; }
 
     public abstract void SyncWithSource(DnDContext context);
 }
