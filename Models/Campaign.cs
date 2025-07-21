@@ -15,6 +15,7 @@ public class Campaign
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
     
+    [Required]
     [ForeignKey("User")]
     public Guid MasterId;
 
