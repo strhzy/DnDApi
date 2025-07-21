@@ -24,7 +24,7 @@ namespace DnDAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Campaign>>> GetCampaigns()
         {
-            return await _context.Campaigns.ToListAsync();
+            return await _context.Campaigns.Include(c => c.PlayerCharacters).ToListAsync();
         }
 
         // GET: api/Campaign/5
@@ -39,7 +39,6 @@ namespace DnDAPI.Controllers
             {
                 return NotFound();
             }
-            
 
             return campaign;
         }
@@ -123,6 +122,9 @@ namespace DnDAPI.Controllers
 
             return Ok(campaign);
         }
+        
+        [HttpGet("{id}/get_characters")]
+        
 
         private bool CampaignExists(Guid id)
         {

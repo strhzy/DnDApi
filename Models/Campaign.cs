@@ -17,7 +17,7 @@ public class Campaign
     
     [Required]
     [ForeignKey("User")]
-    public Guid MasterId  { get; set; }
+    public Guid MasterId { get; set; }
 
     public List<StoryElement> PlotItems { get; set; } = new();
     
