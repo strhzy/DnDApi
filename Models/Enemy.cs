@@ -37,7 +37,7 @@ public class Enemy
         [StringLength(100)]
         public string? ArmorDescription { get; set; }
 
-        public int? HitPoints { get; set; }
+        public int? CurrentHitPoints { get; set; }
 
         [StringLength(50)]
         public string? HitDice { get; set; }

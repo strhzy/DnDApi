@@ -20,7 +20,7 @@ public class NPC
     [StringLength(100)]
     public string Occupation { get; set; } = string.Empty;
 
-    public int HitPoints { get; set; } = 10;
+    public int CurrentHitPoints { get; set; } = 10;
 
     public int ArmorClass { get; set; } = 10;
 
