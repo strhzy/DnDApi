@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DnDAPI.Models;
 
-public abstract class CombatParticipant
+public class CombatParticipant
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -14,77 +14,62 @@ public abstract class CombatParticipant
     public string Name { get; set; } = string.Empty;
 
     public int Initiative { get; set; }
-
     public int CurrentHitPoints { get; set; }
-
     public int MaxHitPoints { get; set; }
-
     public int ArmorClass { get; set; }
-
     public bool IsActive { get; set; }
 
+    [Required]
     public ParticipantType Type { get; set; }
-    public Guid SourceId { get; set; }
 
-    public abstract void SyncWithSource(DnDContext context);
-}
+    // Ссылки на разные типы сущностей (в зависимости от Type)
+    public Guid? PlayerCharacterId { get; set; }
+    public Guid? NpcId { get; set; }
+    public Guid? EnemyId { get; set; }
 
-public class PlayerCombatParticipant : CombatParticipant
-{
-    public Guid PlayerCharacterId { get; set; }
-    
+    // Навигационные свойства
     [ForeignKey("PlayerCharacterId")]
-    public PlayerCharacter PlayerCharacter { get; set; }
+    public PlayerCharacter? PlayerCharacter { get; set; }
 
-    public override void SyncWithSource(DnDContext context)
-    {
-        if (PlayerCharacter == null)
-            PlayerCharacter = context.PlayerCharacters.Find(PlayerCharacterId);
-
-        if (PlayerCharacter != null)
-        {
-            PlayerCharacter.CurrentHitPoints = CurrentHitPoints;
-            PlayerCharacter.TemporaryHitPoints = Math.Max(0, CurrentHitPoints - PlayerCharacter.MaxHitPoints);
-            context.Entry(PlayerCharacter).State = EntityState.Modified;
-        }
-    }
-}
-
-public class NpcCombatParticipant : CombatParticipant
-{
-    public Guid NpcId { get; set; }
-    
     [ForeignKey("NpcId")]
-    public NPC Npc { get; set; }
+    public NPC? Npc { get; set; }
 
-    public override void SyncWithSource(DnDContext context)
+    [ForeignKey("EnemyId")]
+    public Enemy? Enemy { get; set; }
+
+    // Метод для получения исходной сущности
+    public object? GetSourceEntity()
     {
-        if (Npc == null)
-            Npc = context.NPCs.Find(NpcId);
-
-        if (Npc != null)
+        return Type switch
         {
-            Npc.CurrentHitPoints = CurrentHitPoints;
-            context.Entry(Npc).State = EntityState.Modified;
-        }
+            ParticipantType.Player => PlayerCharacter,
+            ParticipantType.Npc => Npc,
+            ParticipantType.Enemy => Enemy,
+            _ => null
+        };
     }
-}
 
-public class EnemyCombatParticipant : CombatParticipant
-{
-    public Guid EnemyId { get; set; }
-
-    [ForeignKey("EnemyId")] public Enemy Enemy { get; set; }
-
-    public override void SyncWithSource(DnDContext context)
+    // Метод для синхронизации параметров
+    public void SyncWithSource()
     {
-        if (Enemy == null)
-            Enemy = context.Enemies.Find(EnemyId);
-
-        if (Enemy != null)
+        var source = GetSourceEntity();
+        switch (source)
         {
-            Enemy.CurrentHitPoints = CurrentHitPoints;
-            context.Entry(Enemy).State = EntityState.Modified;
+            case PlayerCharacter pc:
+                CurrentHitPoints = pc.CurrentHitPoints;
+                MaxHitPoints = pc.MaxHitPoints;
+                ArmorClass = pc.ArmorClass;
+                break;
+            case NPC npc:
+                CurrentHitPoints = npc.CurrentHitPoints;
+                MaxHitPoints = npc.CurrentHitPoints;
+                ArmorClass = npc.ArmorClass;
+                break;
+            case Enemy enemy:
+                CurrentHitPoints = enemy.CurrentHitPoints;
+                MaxHitPoints = enemy.CurrentHitPoints;
+                ArmorClass = enemy.ArmorClass;
+                break;
         }
     }
 }

@@ -100,86 +100,39 @@ namespace DnDAPI.Controllers
         }
 
         [HttpPost("{combatId}/participants")]
-        public async Task<ActionResult<CombatParticipant>> AddParticipant(Guid combatId, [FromBody] CombatParticipant participant)
+        public async Task<ActionResult<CombatParticipant>> AddParticipant(
+            Guid combatId,
+            [FromBody] CombatParticipant participant)
         {
-            // 1. Находим бой
             var combat = await _context.Combats
                 .Include(c => c.Participants)
                 .FirstOrDefaultAsync(c => c.Id == combatId);
 
-            if (combat == null)
-                return NotFound("Бой не найден");
+            if (combat == null) return NotFound();
 
-            // 2. Проверяем тип участника и создаем соответствующую сущность
-            CombatParticipant newParticipant;
-
+            // Валидация типа и соответствующего ID
             switch (participant.Type)
             {
                 case ParticipantType.Player:
-                    var playerChar = await _context.PlayerCharacters.FindAsync(participant.SourceId);
-                    if (playerChar == null)
-                        return BadRequest("Персонаж игрока не найден");
-
-                    newParticipant = new PlayerCombatParticipant
-                    {
-                        PlayerCharacterId = playerChar.Id,
-                        PlayerCharacter = playerChar,
-                        Name = string.IsNullOrEmpty(participant.Name) ? playerChar.Name : participant.Name,
-                        CurrentHitPoints = participant.CurrentHitPoints > 0
-                            ? participant.CurrentHitPoints
-                            : playerChar.CurrentHitPoints,
-                        MaxHitPoints =
-                            participant.MaxHitPoints > 0 ? participant.MaxHitPoints : playerChar.MaxHitPoints,
-                        ArmorClass = participant.ArmorClass > 0 ? participant.ArmorClass : playerChar.ArmorClass,
-                        Initiative = participant.Initiative,
-                        IsActive = true
-                    };
+                    if (participant.PlayerCharacterId == null)
+                        return BadRequest("PlayerCharacterId required for Player type");
                     break;
-
                 case ParticipantType.Npc:
-                    var npc = await _context.NPCs.FindAsync(participant.SourceId);
-                    if (npc == null)
-                        return BadRequest("NPC не найден");
-
-                    newParticipant = new NpcCombatParticipant
-                    {
-                        NpcId = npc.Id,
-                        Npc = npc,
-                        Name = string.IsNullOrEmpty(participant.Name) ? npc.Name : participant.Name,
-                        CurrentHitPoints = participant.CurrentHitPoints > 0
-                            ? participant.CurrentHitPoints
-                            : npc.CurrentHitPoints,
-                        MaxHitPoints = participant.MaxHitPoints > 0 ? participant.MaxHitPoints : npc.CurrentHitPoints,
-                        ArmorClass = participant.ArmorClass > 0 ? participant.ArmorClass : npc.ArmorClass,
-                        Initiative = participant.Initiative,
-                        IsActive = true
-                    };
+                    if (participant.NpcId == null)
+                        return BadRequest("NpcId required for Npc type");
                     break;
-
                 case ParticipantType.Enemy:
-                    var enemy = await _context.Enemies.FindAsync(participant.SourceId);
-                    if (enemy == null)
-                        return BadRequest("Враг не найден");
-
-                    newParticipant = new EnemyCombatParticipant
-                    {
-                        EnemyId = enemy.Id,
-                        Enemy = enemy,
-                        Name = string.IsNullOrEmpty(participant.Name) ? enemy.Name : participant.Name,
-                        CurrentHitPoints = participant.CurrentHitPoints > 0 ? participant.CurrentHitPoints : enemy.CurrentHitPoints,
-                        MaxHitPoints = participant.MaxHitPoints > 0 ? participant.MaxHitPoints : enemy.CurrentHitPoints,
-                        ArmorClass = participant.ArmorClass > 0 ? participant.ArmorClass : enemy.ArmorClass,
-                        Initiative = participant.Initiative,
-                        IsActive = true
-                    };
+                    if (participant.EnemyId == null)
+                        return BadRequest("EnemyId required for Enemy type");
                     break;
-
                 default:
-                    return BadRequest("Неизвестный тип участника");
+                    return BadRequest("Invalid participant type");
             }
 
-            combat.Participants.Add(newParticipant);
+            // Синхронизация параметров из исходной сущности
+            participant.SyncWithSource();
 
+            combat.Participants.Add(participant);
             await _context.SaveChangesAsync();
             
             return CreatedAtAction(nameof(GetCombat), combat.Id, combat);
