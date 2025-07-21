@@ -8,6 +8,8 @@ public class PlayerCharacter
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
+        
+        public ICollection<Campaign> Campaigns { get; set; } = new List<Campaign>();
 
         [Required]
         [StringLength(100)]

@@ -19,4 +19,6 @@ public class Campaign
     public Guid MasterId;
 
     public List<StoryElement> PlotItems { get; set; } = new();
+    
+    public ICollection<PlayerCharacter> PlayerCharacters { get; set; } = new List<PlayerCharacter>();
 }

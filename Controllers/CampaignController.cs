@@ -31,12 +31,15 @@ namespace DnDAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Campaign>> GetCampaign(Guid id)
         {
-            var campaign = await _context.Campaigns.FindAsync(id);
+            var campaign = await _context.Campaigns
+                .Include(c => c.PlayerCharacters)
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (campaign == null)
             {
                 return NotFound();
             }
+            
 
             return campaign;
         }
@@ -97,6 +100,28 @@ namespace DnDAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpPost("{campaignId}/add_char/{characterId}")]
+        public async Task<ActionResult<Campaign>> AddCharacter(Guid campaignId, Guid characterId)
+        {
+            var campaign = await _context.Campaigns
+                .Include(c => c.PlayerCharacters)
+                .FirstOrDefaultAsync(c => c.Id == campaignId);
+
+            var character = await _context.PlayerCharacters.FindAsync(characterId);
+
+            if (campaign == null || character == null)
+                return NotFound();
+
+            if (campaign.PlayerCharacters.Contains(character))
+                return Conflict("Character already in this campaign.");
+
+            campaign.PlayerCharacters.Add(character);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(campaign);
         }
 
         private bool CampaignExists(Guid id)

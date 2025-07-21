@@ -59,6 +59,11 @@ namespace DnDAPI.Models
                 .WithOne(s => s.Enemy)
                 .HasForeignKey(s => s.EnemyId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<Campaign>()
+                .HasMany(pc => pc.PlayerCharacters)
+                .WithMany(c => c.Campaigns)
+                .UsingEntity(j => j.ToTable("PlayerCampaigns"));
 
             // Конвертация Dictionary для PostgreSQL
             modelBuilder.Entity<Enemy>()

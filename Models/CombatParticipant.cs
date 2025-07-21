@@ -23,7 +23,7 @@ public class CombatParticipant
 
     public ParticipantType Type { get; set; }
 
-    public Guid? SourceId { get; set; } // Может ссылаться на PlayerCharacter, NPC или Enemy
+    public Guid? SourceId { get; set; }
 }
 
 public enum ParticipantType
