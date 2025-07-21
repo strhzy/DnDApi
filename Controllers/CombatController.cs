@@ -99,7 +99,7 @@ namespace DnDAPI.Controllers
             return NoContent();
         }
 
-        [HttpPost("combats/{combatId}/participants")]
+        [HttpPost("{combatId}/participants")]
         public async Task<ActionResult<CombatParticipant>> AddParticipant(Guid combatId, [FromBody] CombatParticipant participant)
         {
             // 1. Находим бой
