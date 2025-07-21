@@ -9,6 +9,7 @@ public class PlayerCharacter
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
         
+        [JsonIgnore]
         public ICollection<Campaign> Campaigns { get; set; } = new List<Campaign>();
 
         [Required]
