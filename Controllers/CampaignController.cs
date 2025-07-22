@@ -22,8 +22,16 @@ namespace DnDAPI.Controllers
 
         // GET: api/Campaign
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Campaign>>> GetCampaigns()
+        public async Task<ActionResult<IEnumerable<Campaign>>> GetCampaigns(Guid userId, Guid masterId)
         {
+            if (userId != Guid.Empty)
+            {
+                return await _context.Campaigns.Where(c => c.PlayerCharacters.Any(ch => ch.UserId == userId)).ToListAsync();
+            }
+            else if (masterId != Guid.Empty)
+            {
+                return await _context.Campaigns.Where(c => c.MasterId == masterId).ToListAsync();
+            }
             return await _context.Campaigns.Include(c => c.PlayerCharacters).ToListAsync();
         }
 
