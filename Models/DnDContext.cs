@@ -33,6 +33,11 @@ namespace DnDAPI.Models
                 .HasForeignKey(c => c.MasterId);
             
             modelBuilder.Entity<Campaign>()
+                .HasOne(c => c.Master)
+                .WithMany()
+                .HasForeignKey(c => c.MasterId);
+            
+            modelBuilder.Entity<Campaign>()
                 .HasMany(c => c.PlotItems)
                 .WithOne(s => s.Campaign)
                 .HasForeignKey(s => s.CampaignId);
