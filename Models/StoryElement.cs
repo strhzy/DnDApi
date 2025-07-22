@@ -19,6 +19,6 @@ public class StoryElement
     [ForeignKey("Campaign")]
     public Guid CampaignId { get; set; }
 
-    [JsonIgnore]
-    public Campaign Campaign { get; set; } = null!;
+    [ForeignKey("CampaignId")]
+    public Campaign? Campaign { get; set; }
 }

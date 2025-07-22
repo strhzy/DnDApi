@@ -24,14 +24,14 @@ namespace DnDAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StoryElement>>> GetStoryElements()
         {
-            return await _context.StoryElements.ToListAsync();
+            return await _context.StoryElements.Include(s => s.Campaign).ToListAsync();
         }
 
         // GET: api/StoryElement/5
         [HttpGet("{id}")]
         public async Task<ActionResult<StoryElement>> GetStoryElement(Guid id)
         {
-            var storyElement = await _context.StoryElements.FindAsync(id);
+            var storyElement = await _context.StoryElements.Include(s => s.Campaign).FirstOrDefaultAsync(s => s.Id == id);
 
             if (storyElement == null)
             {

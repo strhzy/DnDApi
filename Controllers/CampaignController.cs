@@ -26,13 +26,17 @@ namespace DnDAPI.Controllers
         {
             if (userId != Guid.Empty)
             {
-                return await _context.Campaigns.Where(c => c.PlayerCharacters.Any(ch => ch.UserId == userId)).Include(c => c.PlayerCharacters).Include(c => c.Master).ToListAsync();
+                return await _context.Campaigns.Where(c => c.PlayerCharacters.Any(ch => ch.UserId == userId))
+                    .Include(c => c.PlayerCharacters).Include(c => c.Master).Include(c => c.PlotItems).ToListAsync();
             }
             else if (masterId != Guid.Empty)
             {
-                return await _context.Campaigns.Where(c => c.MasterId == masterId).Include(c => c.PlayerCharacters).Include(c => c.Master).ToListAsync();
+                return await _context.Campaigns.Where(c => c.MasterId == masterId).Include(c => c.PlayerCharacters)
+                    .Include(c => c.Master).Include(c => c.PlotItems).ToListAsync();
             }
-            return await _context.Campaigns.Include(c => c.PlayerCharacters).Include(c => c.Master).ToListAsync();
+
+            return await _context.Campaigns.Include(c => c.PlayerCharacters).Include(c => c.Master)
+                .Include(c => c.PlotItems).ToListAsync();
         }
 
         // GET: api/Campaign/5
@@ -41,6 +45,8 @@ namespace DnDAPI.Controllers
         {
             var campaign = await _context.Campaigns
                 .Include(c => c.PlayerCharacters)
+                .Include(c => c.Master)
+                .Include(c => c.PlotItems)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (campaign == null)

@@ -69,6 +69,11 @@ namespace DnDAPI.Models
                 .HasMany(pc => pc.PlayerCharacters)
                 .WithMany(c => c.Campaigns)
                 .UsingEntity(j => j.ToTable("PlayerCampaigns"));
+            
+            modelBuilder.Entity<StoryElement>()
+                .HasOne(s => s.Campaign)
+                .WithMany(c => c.PlotItems)
+                .HasForeignKey(s => s.CampaignId);
 
             // Конвертация Dictionary для PostgreSQL
             modelBuilder.Entity<Enemy>()
