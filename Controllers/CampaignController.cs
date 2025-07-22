@@ -131,13 +131,6 @@ namespace DnDAPI.Controllers
             return Ok(campaign);
         }
 
-        [HttpGet("byUser/{userId}")]
-        public async Task<ActionResult<IEnumerable<Campaign>>> GetCampaignsByUser(Guid userId)
-        {
-            return await _context.Campaigns.Where(c => c.PlayerCharacters.Any(ch => ch.UserId == userId)).ToListAsync();
-        }
-        
-
         private bool CampaignExists(Guid id)
         {
             return _context.Campaigns.Any(e => e.Id == id);

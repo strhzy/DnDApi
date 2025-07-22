@@ -16,9 +16,10 @@ public class Campaign
     public string Name { get; set; } = string.Empty;
     
     [Required]
-    [ForeignKey("Master")]
+    [ForeignKey("User")]
     public Guid MasterId { get; set; }
     
+    [ForeignKey("MasterId")]
     public User Master { get; set; }
 
     public List<StoryElement> PlotItems { get; set; } = new();

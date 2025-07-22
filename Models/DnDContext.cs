@@ -34,7 +34,7 @@ namespace DnDAPI.Models
             
             modelBuilder.Entity<Campaign>()
                 .HasOne(c => c.Master)
-                .WithMany()
+                .WithMany(u => u.Campaigns)
                 .HasForeignKey(c => c.MasterId);
             
             modelBuilder.Entity<Campaign>()
