@@ -26,11 +26,11 @@ namespace DnDAPI.Controllers
         {
             if (userId != Guid.Empty)
             {
-                return await _context.Campaigns.Where(c => c.PlayerCharacters.Any(ch => ch.UserId == userId)).ToListAsync();
+                return await _context.Campaigns.Where(c => c.PlayerCharacters.Any(ch => ch.UserId == userId)).Include(c => c.PlayerCharacters).ToListAsync();
             }
             else if (masterId != Guid.Empty)
             {
-                return await _context.Campaigns.Where(c => c.MasterId == masterId).ToListAsync();
+                return await _context.Campaigns.Where(c => c.MasterId == masterId).Include(c => c.PlayerCharacters).ToListAsync();
             }
             return await _context.Campaigns.Include(c => c.PlayerCharacters).ToListAsync();
         }
