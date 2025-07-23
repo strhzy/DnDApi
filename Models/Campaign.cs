@@ -24,5 +24,7 @@ public class Campaign
 
     public List<StoryElement> PlotItems { get; set; } = new();
     
+    public List<Combat> Combats { get; set; } = new();
+    
     public ICollection<PlayerCharacter> PlayerCharacters { get; set; } = new List<PlayerCharacter>();
 }
