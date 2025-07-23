@@ -22,8 +22,15 @@ namespace DnDAPI.Controllers
 
         // GET: api/Combat
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Combat>>> GetCombats()
+        public async Task<ActionResult<IEnumerable<Combat>>> GetCombats(Guid campaignId)
         {
+            if (campaignId != Guid.Empty)
+            {
+                return await _context.Combats
+                    .Where(c => c.CampaignId == campaignId)
+                    .Include(c => c.Participants)
+                    .ToListAsync();
+            }
             return await _context.Combats.Include(c => c.Participants).ToListAsync();
         }
 
