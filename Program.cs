@@ -2,13 +2,14 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using DnDAPI.Models;
 using DnDAPI.Controllers;
+using DnDAPI.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddDbContext<DnDContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("LocalConnection")));
 builder.Services.AddOpenApiDocument(config =>
 {
     config.PostProcess = document =>
@@ -27,7 +28,7 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader();
     });
 });
-
+builder.Services.AddSignalR();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -35,6 +36,7 @@ builder.Services.AddControllers()
     });
 
 var app = builder.Build();
+app.MapHub<CombatHub>("/combathub");
 //app.Urls.Add("http://0.0.0.0:8080");
 app.UseOpenApi();
 app.UseSwaggerUi();

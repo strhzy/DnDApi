@@ -117,34 +117,14 @@ namespace DnDAPI.Controllers
 
             if (combat == null) return NotFound();
 
-            // Валидация типа и соответствующего ID
-            switch (participant.Type)
-            {
-                case ParticipantType.Player:
-                    if (participant.PlayerCharacterId == null)
-                        return BadRequest("PlayerCharacterId required for Player type");
-                    break;
-                case ParticipantType.Npc:
-                    if (participant.NpcId == null)
-                        return BadRequest("NpcId required for Npc type");
-                    break;
-                case ParticipantType.Enemy:
-                    if (participant.EnemyId == null)
-                        return BadRequest("EnemyId required for Enemy type");
-                    break;
-                default:
-                    return BadRequest("Invalid participant type");
-            }
-
-            // Синхронизация параметров из исходной сущности
+            participant.CombatId = combatId;
             participant.SyncWithSource();
 
-            combat.Participants.Add(participant);
+            _context.CombatParticipants.Add(participant);
             await _context.SaveChangesAsync();
-            
-            return CreatedAtAction(nameof(GetCombat), combat.Id, combat);
-        }
 
+            return CreatedAtAction(nameof(GetCombat), new { id = combat.Id }, combat);
+        }
         private bool CombatExists(Guid id)
         {
             return _context.Combats.Any(e => e.Id == id);

@@ -44,8 +44,9 @@ namespace DnDAPI.Models
 
             modelBuilder.Entity<Combat>()
                 .HasMany(c => c.Participants)
-                .WithOne()
-                .HasForeignKey(p => p.Id);
+                .WithOne(p => p.Combat)
+                .HasForeignKey(p => p.CombatId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<PlayerCharacter>()
                 .HasMany(p => p.Attacks)

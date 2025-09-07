@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+using DnDAPI.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace DnDAPI.Models;
@@ -9,42 +11,37 @@ public class CombatParticipant
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    [Required]
-    [StringLength(100)]
     public string Name { get; set; } = string.Empty;
 
     public int Initiative { get; set; }
-    public int CurrentHitPoints { get; set; }
-    public int MaxHitPoints { get; set; }
-    public int ArmorClass { get; set; }
-    public bool IsActive { get; set; }
 
+    public int CurrentHitPoints { get; set; }
+
+    public int MaxHitPoints { get; set; }
+
+    public int ArmorClass { get; set; }
+
+    public bool IsActive { get; set; }
+    
     [Required]
     public ParticipantType Type { get; set; }
 
-    // Ссылки на разные типы сущностей (в зависимости от Type)
-    public Guid? PlayerCharacterId { get; set; }
-    public Guid? NpcId { get; set; }
-    public Guid? EnemyId { get; set; }
+    public Guid? SourceId { get; set; }
 
-    // Навигационные свойства
-    [ForeignKey("PlayerCharacterId")]
-    public PlayerCharacter? PlayerCharacter { get; set; }
+    [ForeignKey("Combat")]
+    public Guid CombatId { get; set; }
 
-    [ForeignKey("NpcId")]
-    public NPC? Npc { get; set; }
-
-    [ForeignKey("EnemyId")]
-    public Enemy? Enemy { get; set; }
+    [JsonIgnore]
+    public Combat? Combat { get; set; }
 
     // Метод для получения исходной сущности
     public object? GetSourceEntity()
     {
         return Type switch
         {
-            ParticipantType.Player => PlayerCharacter,
-            ParticipantType.Npc => Npc,
-            ParticipantType.Enemy => Enemy,
+            ParticipantType.Player => ApiHelper.Get<PlayerCharacter>("PlayerCharacter", SourceId ?? Guid.Empty),
+            ParticipantType.Npc => ApiHelper.Get<NPC>("NPC", SourceId ?? Guid.Empty),
+            ParticipantType.Enemy => ApiHelper.Get<Enemy>("Enemy", SourceId ?? Guid.Empty),
             _ => null
         };
     }

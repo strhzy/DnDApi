@@ -19,8 +19,9 @@ public class Campaign
     [ForeignKey("User")]
     public Guid MasterId { get; set; }
     
+    [JsonIgnore]
     [ForeignKey("MasterId")]
-    public User Master { get; set; }
+    public User? Master { get; set; }
 
     public List<StoryElement> PlotItems { get; set; } = new();
     
