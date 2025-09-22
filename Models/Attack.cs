@@ -19,6 +19,9 @@ public class Attack
     
     [ForeignKey("Enemy")]
     public Guid? EnemyId { get; set; }
+    
+    [ForeignKey("NPC")]
+    public Guid? NpcId { get; set; }
 
     [StringLength(1000)]
     public string Description { get; set; } = string.Empty;

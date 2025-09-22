@@ -26,6 +26,8 @@ public class Combat
 
     public int CurrentTurnIndex { get; set; } = 0;
 
+    public List<CombatLog> CombatLogs { get; set; } = new();
+
     [NotMapped]
     public CombatParticipant? CurrentParticipant
     {

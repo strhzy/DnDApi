@@ -24,14 +24,16 @@ namespace DnDAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Enemy>>> GetEnemies()
         {
-            return await _context.Enemies.ToListAsync();
+            var enemies = _context.Enemies.AsQueryable();
+
+            return await enemies.Include(en => en.Attacks).ToListAsync();
         }
 
         // GET: api/Enemy/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Enemy>> GetEnemy(Guid id)
         {
-            var enemy = await _context.Enemies.FindAsync(id);
+            var enemy = await _context.Enemies.Include(en => en.Attacks).FirstOrDefaultAsync(en => en.Id == id);
 
             if (enemy == null)
             {

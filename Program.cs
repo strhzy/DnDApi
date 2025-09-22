@@ -36,7 +36,7 @@ builder.Services.AddControllers()
     });
 
 var app = builder.Build();
-app.MapHub<CombatHub>("/combathub");
+app.MapHub<CombatHub>("/api/combathub");
 //app.Urls.Add("http://0.0.0.0:8080");
 app.UseOpenApi();
 app.UseSwaggerUi();

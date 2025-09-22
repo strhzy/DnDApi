@@ -27,12 +27,16 @@ namespace DnDAPI.Controllers
 
         // GET: api/PlayerCharacter
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlayerCharacter>>> GetPlayerCharacters([FromQuery] string? query)
+        public async Task<ActionResult<IEnumerable<PlayerCharacter>>> GetPlayerCharacters([FromQuery] string? userId, [FromQuery] string? campaignId)
         {
             var characters = _context.PlayerCharacters.AsQueryable();
-            if (!query.IsNullOrEmpty())
+            if (!userId.IsNullOrEmpty())
             {
-                characters = characters.Where(p => p.UserId.ToString().Contains(query));
+                characters = characters.Where(p => p.UserId.ToString().Contains(userId));
+            }
+            if (!string.IsNullOrEmpty(campaignId))
+            {
+                characters = characters.Where(p => p.Campaigns.Any(cmp => cmp.Id.ToString() == campaignId));
             }
 
             return await characters.Include(pc => pc.Attacks).ToListAsync();

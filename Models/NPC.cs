@@ -35,4 +35,6 @@ public class NPC
 
     [StringLength(500)]
     public string Flaws { get; set; } = string.Empty;
+    
+    public List<Attack> Attacks { get; set; } = new();
 }

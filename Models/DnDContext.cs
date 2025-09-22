@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using DnDAPI.Models;
 
 namespace DnDAPI.Models
 {
@@ -59,6 +60,12 @@ namespace DnDAPI.Models
                 .WithOne()
                 .HasForeignKey(a => a.EnemyId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<NPC>()
+                .HasMany(e => e.Attacks)
+                .WithOne()
+                .HasForeignKey(a => a.NpcId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Enemy>()
                 .HasMany(e => e.SpecialAbilities)
@@ -84,6 +91,12 @@ namespace DnDAPI.Models
             modelBuilder.Entity<Enemy>()
                 .Property(e => e.Skills)
                 .HasColumnType("jsonb");
+
+            modelBuilder.Entity<CombatLog>()
+                .HasOne(cl => cl.Combat)
+                .WithMany(c => c.CombatLogs)
+                .HasForeignKey(cl => cl.CombatId);
         }
+        public DbSet<DnDAPI.Models.CombatLog> CombatLog { get; set; } = default!;
     }
 }

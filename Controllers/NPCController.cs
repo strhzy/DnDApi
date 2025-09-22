@@ -22,23 +22,25 @@ namespace DnDAPI.Controllers
 
         // GET: api/NPC
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<NPC>>> GetNPCs()
+        public async Task<ActionResult<IEnumerable<NPC>>> GetNPCs([FromQuery] string? campaignId)
         {
-            return await _context.NPCs.ToListAsync();
+            var npcs = _context.NPCs.AsQueryable();
+
+            return await npcs.Include(en => en.Attacks).ToListAsync();
         }
 
         // GET: api/NPC/5
         [HttpGet("{id}")]
         public async Task<ActionResult<NPC>> GetNPC(Guid id)
         {
-            var nPC = await _context.NPCs.FindAsync(id);
+            var npc = await _context.NPCs.Include(np => np.Attacks).FirstOrDefaultAsync(np => np.Id == id);
 
-            if (nPC == null)
+            if (npc == null)
             {
                 return NotFound();
             }
 
-            return nPC;
+            return npc;
         }
 
         // PUT: api/NPC/5
