@@ -19,5 +19,5 @@ public class SpecialAbility
     public Guid EnemyId { get; set; }
 
     [JsonIgnore]
-    public Enemy Enemy { get; set; } = null!;
+    public Enemy? Enemy { get; set; }
 }
