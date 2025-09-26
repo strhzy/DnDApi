@@ -36,6 +36,12 @@ builder.Services.AddControllers()
     });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DnDContext>();
+    db.Database.Migrate();
+}
 app.MapHub<CombatHub>("/api/combathub");
 //app.Urls.Add("http://0.0.0.0:8080");
 app.UseOpenApi();
