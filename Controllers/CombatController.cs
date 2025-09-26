@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using System.Collections.Concurrent;
+using System.Text.Json;
+using System.Threading.Channels;
+using DnDAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DnDAPI.Models;
 
 namespace DnDAPI.Controllers
 {
@@ -15,12 +13,13 @@ namespace DnDAPI.Controllers
     {
         private readonly DnDContext _context;
 
+        private static readonly ConcurrentDictionary<Guid, CombatRoom> _combatRooms = new();
+
         public CombatController(DnDContext context)
         {
             _context = context;
         }
 
-        // GET: api/Combat
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Combat>>> GetCombats(Guid campaignId)
         {
@@ -31,10 +30,10 @@ namespace DnDAPI.Controllers
                     .Include(c => c.Participants)
                     .ToListAsync();
             }
+
             return await _context.Combats.Include(c => c.Participants).ToListAsync();
         }
 
-        // GET: api/Combat/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Combat>> GetCombat(Guid id)
         {
@@ -48,8 +47,6 @@ namespace DnDAPI.Controllers
             return combat;
         }
 
-        // PUT: api/Combat/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCombat(Guid id, Combat combat)
         {
@@ -79,8 +76,6 @@ namespace DnDAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/Combat
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Combat>> PostCombat(Combat combat)
         {
@@ -90,7 +85,6 @@ namespace DnDAPI.Controllers
             return CreatedAtAction("GetCombat", new { id = combat.Id }, combat);
         }
 
-        // DELETE: api/Combat/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCombat(Guid id)
         {
@@ -125,9 +119,193 @@ namespace DnDAPI.Controllers
 
             return CreatedAtAction(nameof(GetCombat), new { id = combat.Id }, combat);
         }
+
         private bool CombatExists(Guid id)
         {
             return _context.Combats.Any(e => e.Id == id);
         }
+
+        [HttpGet("{combatId}/stream")]
+        public async Task Stream(Guid combatId)
+        {
+            Response.Headers.Add("Content-Type", "text/event-stream");
+            Response.Headers.Add("Cache-Control", "no-cache");
+
+            var room = _combatRooms.GetOrAdd(combatId, id => new CombatRoom(id));
+            room.Combat = _context.Combats
+                .Include(c => c.Participants)
+                .FirstOrDefault(c => c.Id == combatId);
+            var channel = Channel.CreateUnbounded<string>();
+            room.Clients[HttpContext.TraceIdentifier] = channel;
+
+            try
+            {
+                await foreach (var msg in channel.Reader.ReadAllAsync(HttpContext.RequestAborted))
+                {
+                    await Response.WriteAsync($"data: {msg}\n\n");
+                    await Response.Body.FlushAsync();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // клиент отключился
+            }
+            finally
+            {
+                room.Clients.TryRemove(HttpContext.TraceIdentifier, out _);
+            }
+        }
+
+        [HttpPost("{combatId}/player-move")]
+        public IActionResult SendPlayerMove(Guid combatId, [FromBody] CombatLog log)
+        {
+            if (!_combatRooms.TryGetValue(combatId, out var room)) return NotFound();
+
+            log.CombatId = combatId;
+
+
+            var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
+            if (target != null && log.Damage.HasValue && log.Type == "attack")
+            {
+                target.CurrentHitPoints = Math.Max(0, target.CurrentHitPoints - log.Damage.Value);
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints - log.Damage.Value;
+            }
+            else if (target != null && log.Damage.HasValue && log.Type == "heal")
+            {
+                target.CurrentHitPoints += log.Damage.Value;
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints + log.Damage.Value;
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+            _context.SaveChanges();
+
+            room.Broadcast(new { eventType = "PlayerMove", combat = room.Combat, log });
+            return Ok();
+        }
+
+        [HttpPost("{combatId}/master-confirm")]
+        public IActionResult ConfirmMasterAction(Guid combatId, [FromBody] CombatConfirmRequest request)
+        {
+            if (!_combatRooms.TryGetValue(combatId, out var room)) return NotFound();
+
+            var log = request.Log;
+            var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
+            if (target != null && log.Damage.HasValue && log.Type == "attack")
+            {
+                target.CurrentHitPoints = Math.Max(0, target.CurrentHitPoints - log.Damage.Value);
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints - log.Damage.Value;
+            }
+            else if (target != null && log.Damage.HasValue && log.Type == "heal")
+            {
+                target.CurrentHitPoints += log.Damage.Value;
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints + log.Damage.Value;
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+            _context.SaveChanges();
+            room.Broadcast(new { eventType = "MasterConfirm", combat = room.Combat, log });
+            return Ok();
+        }
+
+        [HttpPost("{combatId}/npc-move")]
+        public IActionResult SendNpcMove(Guid combatId, [FromBody] CombatLog log)
+        {
+            if (!_combatRooms.TryGetValue(combatId, out var room)) return NotFound();
+
+            log.CombatId = combatId;
+
+            var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
+            if (target != null && log.Damage.HasValue && log.Type == "attack")
+            {
+                target.CurrentHitPoints = Math.Max(0, target.CurrentHitPoints - log.Damage.Value);
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints - log.Damage.Value;
+            }
+            else if (target != null && log.Damage.HasValue && log.Type == "heal")
+            {
+                target.CurrentHitPoints += log.Damage.Value;
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints + log.Damage.Value;
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+            _context.SaveChanges();
+
+            room.Broadcast(new { eventType = "NpcMove", combat = room.Combat, log });
+            return Ok();
+        }
+
+        [HttpPost("{combatId}/enemy-move")]
+        public IActionResult SendEnemyMove(Guid combatId, [FromBody] CombatLog log)
+        {
+            if (!_combatRooms.TryGetValue(combatId, out var room)) return NotFound();
+
+            log.CombatId = combatId;
+
+            var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
+            if (target != null && log.Damage.HasValue && log.Type == "attack")
+            {
+                target.CurrentHitPoints = Math.Max(0, target.CurrentHitPoints - log.Damage.Value);
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints - log.Damage.Value;
+            }
+            else if (target != null && log.Damage.HasValue && log.Type == "heal")
+            {
+                target.CurrentHitPoints += log.Damage.Value;
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints + log.Damage.Value;
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+            _context.SaveChanges();
+
+            room.Broadcast(new { eventType = "EnemyMove", combat = room.Combat, log });
+            return Ok();
+        }
+    }
+
+
+    public class CombatRoom
+    {
+        public Guid Id { get; }
+        public Combat Combat { get; set;}
+        public ConcurrentDictionary<string, Channel<string>> Clients { get; }
+
+        public CombatRoom(Guid id)
+        {
+            Id = id;
+            Clients = new();
+        }
+
+        public void Broadcast(object message)
+        {
+            var json = JsonSerializer.Serialize(message);
+            foreach (var client in Clients.Values)
+            {
+                client.Writer.TryWrite(json);
+            }
+        }
+    }
+
+    public class CombatConfirmRequest
+    {
+        public Combat Combat { get; set; }
+        public CombatLog Log { get; set; }
     }
 }
