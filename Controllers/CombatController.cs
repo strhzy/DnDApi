@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Threading.Channels;
 using DnDAPI.Models;
@@ -163,28 +164,10 @@ namespace DnDAPI.Controllers
 
             log.CombatId = combatId;
 
+            room.PendingLogs.Add(log);
 
-            var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
-            if (target != null && log.Damage.HasValue && log.Type == "attack")
-            {
-                target.CurrentHitPoints = Math.Max(0, target.CurrentHitPoints - log.Damage.Value);
-                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
-                    target.CurrentHitPoints - log.Damage.Value;
-            }
-            else if (target != null && log.Damage.HasValue && log.Type == "heal")
-            {
-                target.CurrentHitPoints += log.Damage.Value;
-                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
-                    target.CurrentHitPoints + log.Damage.Value;
-            }
-            else
-            {
-                return BadRequest();
-            }
+            room.Broadcast(new { eventType = "PendingMove", log });
 
-            _context.SaveChanges();
-
-            room.Broadcast(new { eventType = "PlayerMove", combat = room.Combat, log });
             return Ok();
         }
 
@@ -194,25 +177,25 @@ namespace DnDAPI.Controllers
             if (!_combatRooms.TryGetValue(combatId, out var room)) return NotFound();
 
             var log = request.Log;
+
             var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
-            if (target != null && log.Damage.HasValue && log.Type == "attack")
+            if (target != null && log.Damage.HasValue)
             {
-                target.CurrentHitPoints = Math.Max(0, target.CurrentHitPoints - log.Damage.Value);
-                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
-                    target.CurrentHitPoints - log.Damage.Value;
-            }
-            else if (target != null && log.Damage.HasValue && log.Type == "heal")
-            {
-                target.CurrentHitPoints += log.Damage.Value;
-                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
-                    target.CurrentHitPoints + log.Damage.Value;
-            }
-            else
-            {
-                return BadRequest();
+                if (log.Type == "attack")
+                    target.CurrentHitPoints = Math.Max(0, target.CurrentHitPoints - log.Damage.Value);
+                else if (log.Type == "heal")
+                    target.CurrentHitPoints += log.Damage.Value;
             }
 
-            _context.SaveChanges();
+            var targetDb = _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId);
+            if (targetDb != null)
+            {
+                targetDb.CurrentHitPoints = target.CurrentHitPoints;
+                _context.SaveChanges();
+            }
+
+            room.Combat.CombatLogs.Add(log);
+
             room.Broadcast(new { eventType = "MasterConfirm", combat = room.Combat, log });
             return Ok();
         }
@@ -285,6 +268,7 @@ namespace DnDAPI.Controllers
     {
         public Guid Id { get; }
         public Combat Combat { get; set;}
+        public ObservableCollection<CombatLog> PendingLogs = new();
         public ConcurrentDictionary<string, Channel<string>> Clients { get; }
 
         public CombatRoom(Guid id)
