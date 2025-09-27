@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using DnDAPI.Models;
 using DnDAPI.Controllers;
-using DnDAPI.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +41,6 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<DnDContext>();
     db.Database.Migrate();
 }
-app.MapHub<CombatHub>("/api/combathub");
 //app.Urls.Add("http://0.0.0.0:8080");
 app.UseOpenApi();
 app.UseSwaggerUi();
