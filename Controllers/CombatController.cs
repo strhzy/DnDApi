@@ -22,7 +22,7 @@ namespace DnDAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Combat>>> GetCombats(Guid campaignId)
+        public async Task<ActionResult<IEnumerable<Combat>>> GetCombats([FromQuery] Guid campaignId)
         {
             if (campaignId != Guid.Empty)
             {
