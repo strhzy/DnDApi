@@ -29,6 +29,7 @@ namespace DnDAPI.Controllers
                 return await _context.Combats
                     .Where(c => c.CampaignId == campaignId)
                     .Include(c => c.Participants)
+                    .Include(c => c.CombatLogs)
                     .ToListAsync();
             }
 
@@ -38,7 +39,7 @@ namespace DnDAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Combat>> GetCombat(Guid id)
         {
-            var combat = await _context.Combats.Include(c => c.Participants).FirstOrDefaultAsync(c => c.Id == id);
+            var combat = await _context.Combats.Include(c => c.Participants).Include(c => c.CombatLogs).FirstOrDefaultAsync(c => c.Id == id);
 
             if (combat == null)
             {
