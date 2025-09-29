@@ -163,6 +163,7 @@ namespace DnDAPI.Controllers
             if (!_combatRooms.TryGetValue(combatId, out var room)) return NotFound();
 
             log.CombatId = combatId;
+            
 
             room.PendingLogs.Add(log);
 
@@ -206,6 +207,7 @@ namespace DnDAPI.Controllers
             if (!_combatRooms.TryGetValue(combatId, out var room)) return NotFound();
 
             log.CombatId = combatId;
+            _context.CombatLog.Add(log);
 
             var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
             if (target != null && log.Damage.HasValue && log.Type == "attack")
@@ -237,6 +239,7 @@ namespace DnDAPI.Controllers
             if (!_combatRooms.TryGetValue(combatId, out var room)) return NotFound();
 
             log.CombatId = combatId;
+            _context.CombatLog.Add(log);
 
             var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
             if (target != null && log.Damage.HasValue && log.Type == "attack")
