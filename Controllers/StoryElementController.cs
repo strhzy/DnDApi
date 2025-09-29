@@ -22,8 +22,15 @@ namespace DnDAPI.Controllers
 
         // GET: api/StoryElement
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<StoryElement>>> GetStoryElements()
+        public async Task<ActionResult<IEnumerable<StoryElement>>> GetStoryElements([FromQuery] Guid campaignId)
         {
+            if (campaignId != Guid.Empty)
+            {
+                return await _context.StoryElements
+                    .Where(c => c.CampaignId == campaignId)
+                    .Include(s => s.Campaign)
+                    .ToListAsync();
+            }
             return await _context.StoryElements.Include(s => s.Campaign).ToListAsync();
         }
 
