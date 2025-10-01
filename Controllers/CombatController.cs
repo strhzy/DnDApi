@@ -171,6 +171,8 @@ namespace DnDAPI.Controllers
             {
                 _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
                     target.CurrentHitPoints - log.Damage.Value;
+                if (target.CurrentHitPoints < 0)
+                    _context.Combats.FirstOrDefaultAsync(c => c.Id == combatId).Result.Participants.Remove(target);
             }
             else if (target != null && log.Damage.HasValue && log.Type == "heal")
             {
@@ -230,6 +232,8 @@ namespace DnDAPI.Controllers
             {
                 _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
                     target.CurrentHitPoints - log.Damage.Value;
+                if (target.CurrentHitPoints < 0)
+                    _context.Combats.FirstOrDefaultAsync(c => c.Id == combatId).Result.Participants.Remove(target);
             }
             else if (target != null && log.Damage.HasValue && log.Type == "heal")
             {
@@ -261,6 +265,8 @@ namespace DnDAPI.Controllers
                 target.CurrentHitPoints = Math.Max(0, target.CurrentHitPoints - log.Damage.Value);
                 _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
                     target.CurrentHitPoints - log.Damage.Value;
+                if (target.CurrentHitPoints < 0)
+                    _context.Combats.FirstOrDefaultAsync(c => c.Id == combatId).Result.Participants.Remove(target);
             }
             else if (target != null && log.Damage.HasValue && log.Type == "heal")
             {
