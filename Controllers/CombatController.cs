@@ -33,7 +33,7 @@ namespace DnDAPI.Controllers
                     .ToListAsync();
             }
 
-            return await _context.Combats.Include(c => c.Participants).ToListAsync();
+            return await _context.Combats.Include(c => c.Participants).Include(c => c.CombatLogs).ToListAsync();
         }
 
         [HttpGet("{id}")]
