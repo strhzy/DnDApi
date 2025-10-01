@@ -22,8 +22,12 @@ namespace DnDAPI.Controllers
 
         // GET: api/CombatLog
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CombatLog>>> GetCombatLog()
+        public async Task<ActionResult<IEnumerable<CombatLog>>> GetCombatLogs( [FromQuery] Guid combatId)
         {
+            if (combatId != null)
+            {
+                return await _context.CombatLog.Where(cl => cl.CombatId == combatId).ToListAsync();
+            }
             return await _context.CombatLog.ToListAsync();
         }
 
