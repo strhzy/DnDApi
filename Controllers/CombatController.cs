@@ -164,12 +164,27 @@ namespace DnDAPI.Controllers
             if (!_combatRooms.TryGetValue(combatId, out var room)) return NotFound();
 
             log.CombatId = combatId;
-            
+            _context.CombatLog.Add(log);
 
-            room.PendingLogs.Add(log);
+            var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
+            if (target != null && log.Damage.HasValue && log.Type == "attack")
+            {
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints - log.Damage.Value;
+            }
+            else if (target != null && log.Damage.HasValue && log.Type == "heal")
+            {
+                _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
+                    target.CurrentHitPoints + log.Damage.Value;
+            }
+            else
+            {
+                return BadRequest();
+            }
 
-            room.Broadcast(new { eventType = "PendingMove", log });
+            _context.SaveChanges();
 
+            room.Broadcast(new { eventType = "PlayerMove", combat = room.Combat, log });
             return Ok();
         }
 
@@ -213,13 +228,11 @@ namespace DnDAPI.Controllers
             var target = room.Combat.Participants.FirstOrDefault(p => p.Id == log.TargetId);
             if (target != null && log.Damage.HasValue && log.Type == "attack")
             {
-                target.CurrentHitPoints = Math.Max(0, target.CurrentHitPoints - log.Damage.Value);
                 _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
                     target.CurrentHitPoints - log.Damage.Value;
             }
             else if (target != null && log.Damage.HasValue && log.Type == "heal")
             {
-                target.CurrentHitPoints += log.Damage.Value;
                 _context.CombatParticipants.FirstOrDefault(p => p.Id == log.TargetId).CurrentHitPoints =
                     target.CurrentHitPoints + log.Damage.Value;
             }
