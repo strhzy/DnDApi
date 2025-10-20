@@ -22,7 +22,7 @@ ENV PATH="${PATH}:/root/.dotnet/tools"
 
 # Делаем скрипт исполняемым
 RUN chmod +x entrypoint.sh
-
+COPY --from=build /src ./src
 EXPOSE 8080
 EXPOSE 8081
 
