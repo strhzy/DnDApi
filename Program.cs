@@ -37,10 +37,6 @@ builder.Services.AddControllers()
 var app = builder.Build();
 //app.Urls.Add("http://0.0.0.0:8080");
 using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
 app.UseOpenApi();
 app.UseSwaggerUi();
 app.UseHttpsRedirection();
