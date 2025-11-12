@@ -28,12 +28,12 @@ namespace DnDAPI.Controllers
         {
             if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.PasswordHash))
             {
-                return BadRequest("Email и пароль обязательны");
+                return BadRequest(new { message = "Email и пароль обязательны" });
             }
 
             if (await _context.Users.AnyAsync(u => u.Username == request.Email))
             {
-                return Conflict("Пользователь с таким email уже существует");
+                return Conflict(new { message = "Пользователь с таким email уже существует" });
             }
 
             var user = new User
@@ -46,7 +46,7 @@ namespace DnDAPI.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return Ok(new { Message = "Регистрация успешна" });
+            return Ok(new { message = "Регистрация успешна" });
         }
 
         [HttpPost("login")]
