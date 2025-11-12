@@ -1,9 +1,6 @@
 ﻿services:
   dndapi:
-    image: dndapi
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: strhzy/dndapi:latest
     ports:
       - "5000:8080"
       - "5001:8081"
