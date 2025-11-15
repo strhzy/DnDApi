@@ -81,7 +81,7 @@ namespace DnDAPI.Controllers
                 var html = await engine.CompileRenderAsync(templatePath, character);
 
                 // 2. Конвертация HTML в PDF через внешний API
-                string apiKey = "2df21dfbf758aeb5b474b71845591ecb"; // Замените на реальный ключ
+                string apiKey = "3cb5ac0470b1b773c4586800a9fd544b"; // Замените на реальный ключ
                 using (var client = new HttpClient())
                 {
                     var formData = new MultipartFormDataContent();
